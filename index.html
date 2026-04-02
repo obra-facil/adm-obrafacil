@@ -1,0 +1,714 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ADM — ObraFácil</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=Sora:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --orange:#F97316;--orange2:#FB923C;--odim:rgba(249,115,22,0.12);
+  --dark:#080E18;--dark2:#0D1525;--dark3:#111D2E;--dark4:#162035;--dark5:#1C2A3F;
+  --white:#F1F5F9;--off:#94A3B8;--muted:#475569;
+  --green:#22C55E;--gdim:rgba(34,197,94,0.12);
+  --blue:#3B82F6;--bdim:rgba(59,130,246,0.12);
+  --red:#EF4444;--rdim:rgba(239,68,68,0.12);
+  --yellow:#EAB308;--ydim:rgba(234,179,8,0.12);
+  --purple:#8B5CF6;--pdim:rgba(139,92,246,0.12);
+  --border:rgba(255,255,255,0.06);--border2:rgba(255,255,255,0.10);
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{font-family:'Sora',sans-serif;background:var(--dark);color:var(--white);line-height:1.6;min-height:100vh;}
+::-webkit-scrollbar{width:4px;}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px;}
+
+/* LOGIN */
+#login-screen{position:fixed;inset:0;background:var(--dark);display:flex;align-items:center;justify-content:center;z-index:1000;}
+.login-box{width:380px;background:var(--dark3);border:1px solid var(--border2);border-radius:16px;padding:40px;text-align:center;}
+.login-logo{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--orange);letter-spacing:0.2em;text-transform:uppercase;margin-bottom:8px;}
+.login-title{font-size:22px;font-weight:700;margin-bottom:4px;}
+.login-sub{font-size:12px;color:var(--muted);margin-bottom:32px;}
+.login-input{width:100%;background:var(--dark4);border:1px solid var(--border2);border-radius:8px;padding:12px 16px;color:var(--white);font-family:'Sora',sans-serif;font-size:13px;margin-bottom:12px;outline:none;transition:border 0.15s;}
+.login-input:focus{border-color:var(--orange);}
+.login-btn{width:100%;background:var(--orange);border:none;border-radius:8px;padding:13px;color:#fff;font-family:'Sora',sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:opacity 0.15s;margin-top:4px;}
+.login-btn:hover{opacity:0.9;}
+.login-error{font-size:11px;color:var(--red);margin-top:8px;display:none;}
+
+/* LAYOUT */
+#app{display:none;min-height:100vh;}
+.sidebar{width:220px;background:var(--dark2);border-right:1px solid var(--border);position:fixed;top:0;bottom:0;left:0;display:flex;flex-direction:column;z-index:100;}
+.sidebar-logo{padding:20px 20px 16px;border-bottom:1px solid var(--border);}
+.logo-label{font-family:'IBM Plex Mono',monospace;font-size:8px;color:var(--orange);letter-spacing:0.2em;text-transform:uppercase;margin-bottom:4px;}
+.logo-name{font-size:15px;font-weight:700;}
+.logo-sub{font-size:10px;color:var(--muted);font-family:'IBM Plex Mono',monospace;}
+.sidebar-nav{flex:1;padding:12px 0;overflow-y:auto;}
+.nav-section{padding:8px 16px 4px;font-family:'IBM Plex Mono',monospace;font-size:8px;color:var(--muted);letter-spacing:0.15em;text-transform:uppercase;}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 16px;cursor:pointer;font-size:12px;color:var(--off);transition:all 0.15s;border-left:2px solid transparent;margin:1px 0;}
+.nav-item:hover{background:rgba(255,255,255,0.03);color:var(--white);}
+.nav-item.active{background:var(--odim);color:var(--orange);border-left-color:var(--orange);}
+.nav-icon{font-size:14px;width:16px;text-align:center;}
+.sidebar-footer{padding:16px;border-top:1px solid var(--border);}
+.logout-btn{width:100%;background:transparent;border:1px solid var(--border2);border-radius:6px;padding:8px;color:var(--muted);font-family:'Sora',sans-serif;font-size:11px;cursor:pointer;transition:all 0.15s;}
+.logout-btn:hover{border-color:var(--red);color:var(--red);}
+.main{margin-left:220px;min-height:100vh;}
+.topbar{background:var(--dark2);border-bottom:1px solid var(--border);padding:14px 28px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50;}
+.topbar-title{font-size:14px;font-weight:600;}
+.topbar-right{display:flex;align-items:center;gap:12px;}
+.badge-live{display:flex;align-items:center;gap:6px;background:var(--gdim);border:1px solid rgba(34,197,94,0.2);border-radius:20px;padding:4px 10px;font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--green);letter-spacing:0.1em;}
+.dot-live{width:6px;height:6px;border-radius:50%;background:var(--green);animation:pulse 2s infinite;}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:0.4;}}
+.content{padding:28px;}
+
+/* PAGES */
+.page{display:none;}
+.page.active{display:block;}
+
+/* DASHBOARD */
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:24px;}
+.stat-card{background:var(--dark3);border:1px solid var(--border);border-radius:10px;padding:18px;}
+.stat-label{font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:8px;}
+.stat-value{font-size:26px;font-weight:700;line-height:1;margin-bottom:4px;}
+.stat-sub{font-size:10px;color:var(--muted);}
+.stat-orange{color:var(--orange);}
+.stat-green{color:var(--green);}
+.stat-blue{color:var(--blue);}
+.stat-purple{color:var(--purple);}
+
+/* KANBAN */
+.kanban-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;}
+.kanban-board{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;}
+.kanban-col{background:var(--dark3);border:1px solid var(--border);border-radius:10px;padding:14px;min-height:400px;}
+.col-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--border);}
+.col-title{font-size:12px;font-weight:600;}
+.col-count{font-family:'IBM Plex Mono',monospace;font-size:10px;padding:2px 8px;border-radius:10px;}
+.count-orange{background:var(--odim);color:var(--orange);}
+.count-blue{background:var(--bdim);color:var(--blue);}
+.count-yellow{background:var(--ydim);color:var(--yellow);}
+.count-green{background:var(--gdim);color:var(--green);}
+.kanban-card{background:var(--dark4);border:1px solid var(--border2);border-radius:8px;padding:12px;margin-bottom:8px;cursor:grab;transition:all 0.15s;}
+.kanban-card:hover{border-color:var(--orange);transform:translateY(-1px);}
+.kanban-card.dragging{opacity:0.5;cursor:grabbing;}
+.card-title{font-size:12px;font-weight:500;margin-bottom:6px;}
+.card-meta{font-size:10px;color:var(--muted);font-family:'IBM Plex Mono',monospace;}
+.card-tags{display:flex;gap:4px;flex-wrap:wrap;margin-top:8px;}
+.tag{font-size:9px;padding:2px 7px;border-radius:10px;font-family:'IBM Plex Mono',monospace;}
+.tag-orange{background:var(--odim);color:var(--orange);}
+.tag-blue{background:var(--bdim);color:var(--blue);}
+.tag-green{background:var(--gdim);color:var(--green);}
+.tag-red{background:var(--rdim);color:var(--red);}
+.tag-purple{background:var(--pdim);color:var(--purple);}
+.add-card-btn{width:100%;background:transparent;border:1px dashed var(--border2);border-radius:8px;padding:10px;color:var(--muted);font-family:'Sora',sans-serif;font-size:11px;cursor:pointer;transition:all 0.15s;margin-top:8px;}
+.add-card-btn:hover{border-color:var(--orange);color:var(--orange);}
+
+/* TODO */
+.todo-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;}
+.todo-input-row{display:flex;gap:10px;margin-bottom:20px;}
+.todo-input{flex:1;background:var(--dark3);border:1px solid var(--border2);border-radius:8px;padding:11px 16px;color:var(--white);font-family:'Sora',sans-serif;font-size:13px;outline:none;transition:border 0.15s;}
+.todo-input:focus{border-color:var(--orange);}
+.todo-add-btn{background:var(--orange);border:none;border-radius:8px;padding:11px 20px;color:#fff;font-family:'Sora',sans-serif;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;}
+.todo-select{background:var(--dark3);border:1px solid var(--border2);border-radius:8px;padding:11px 12px;color:var(--white);font-family:'Sora',sans-serif;font-size:12px;outline:none;cursor:pointer;}
+.todo-section{margin-bottom:24px;}
+.todo-section-title{font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:0.15em;text-transform:uppercase;margin-bottom:10px;}
+.todo-item{display:flex;align-items:flex-start;gap:12px;background:var(--dark3);border:1px solid var(--border);border-radius:8px;padding:12px 14px;margin-bottom:6px;transition:all 0.15s;}
+.todo-item:hover{border-color:var(--border2);}
+.todo-item.done{opacity:0.5;}
+.todo-check{width:18px;height:18px;border-radius:4px;border:1px solid var(--border2);background:transparent;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;margin-top:2px;transition:all 0.15s;}
+.todo-check.checked{background:var(--orange);border-color:var(--orange);}
+.todo-check.checked::after{content:'✓';color:#fff;font-size:11px;font-weight:700;}
+.todo-text{flex:1;font-size:13px;}
+.todo-item.done .todo-text{text-decoration:line-through;color:var(--muted);}
+.todo-badge{font-family:'IBM Plex Mono',monospace;font-size:9px;padding:2px 8px;border-radius:10px;flex-shrink:0;}
+.todo-del{background:transparent;border:none;color:var(--muted);cursor:pointer;font-size:14px;padding:0 4px;transition:color 0.15s;flex-shrink:0;}
+.todo-del:hover{color:var(--red);}
+
+/* DOCS */
+.docs-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;}
+.doc-card{background:var(--dark3);border:1px solid var(--border);border-radius:10px;padding:18px;cursor:pointer;transition:all 0.15s;text-decoration:none;color:inherit;display:block;}
+.doc-card:hover{border-color:var(--orange);transform:translateY(-2px);}
+.doc-icon{font-size:28px;margin-bottom:12px;}
+.doc-title{font-size:13px;font-weight:600;margin-bottom:4px;}
+.doc-desc{font-size:11px;color:var(--muted);line-height:1.5;}
+.doc-tag{display:inline-block;font-family:'IBM Plex Mono',monospace;font-size:8px;padding:2px 8px;border-radius:10px;margin-top:10px;}
+
+/* MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:500;display:none;align-items:center;justify-content:center;}
+.modal-overlay.open{display:flex;}
+.modal{background:var(--dark3);border:1px solid var(--border2);border-radius:14px;padding:28px;width:480px;max-width:90vw;}
+.modal-title{font-size:16px;font-weight:600;margin-bottom:20px;}
+.modal-input{width:100%;background:var(--dark4);border:1px solid var(--border2);border-radius:8px;padding:11px 14px;color:var(--white);font-family:'Sora',sans-serif;font-size:13px;outline:none;margin-bottom:12px;transition:border 0.15s;}
+.modal-input:focus{border-color:var(--orange);}
+.modal-row{display:flex;gap:10px;margin-bottom:12px;}
+.modal-select{flex:1;background:var(--dark4);border:1px solid var(--border2);border-radius:8px;padding:11px 12px;color:var(--white);font-family:'Sora',sans-serif;font-size:12px;outline:none;}
+.modal-btns{display:flex;gap:10px;justify-content:flex-end;margin-top:20px;}
+.btn-cancel{background:transparent;border:1px solid var(--border2);border-radius:8px;padding:9px 18px;color:var(--off);font-family:'Sora',sans-serif;font-size:12px;cursor:pointer;}
+.btn-save{background:var(--orange);border:none;border-radius:8px;padding:9px 18px;color:#fff;font-family:'Sora',sans-serif;font-size:12px;font-weight:600;cursor:pointer;}
+
+/* PAGE HEADER */
+.page-header{margin-bottom:24px;}
+.page-title{font-size:20px;font-weight:700;margin-bottom:4px;}
+.page-sub{font-size:12px;color:var(--muted);}
+.btn-primary{background:var(--orange);border:none;border-radius:8px;padding:9px 18px;color:#fff;font-family:'Sora',sans-serif;font-size:12px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:6px;}
+.btn-primary:hover{opacity:0.9;}
+
+/* DRAG ZONE */
+.kanban-col.drag-over{border-color:var(--orange);background:var(--odim);}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="login-screen">
+  <div class="login-box">
+    <div class="login-logo">// ObraFácil</div>
+    <div class="login-title">Painel ADM</div>
+    <div class="login-sub">Acesso restrito à equipe interna</div>
+    <input class="login-input" type="text" id="login-user" placeholder="Usuário" autocomplete="off">
+    <input class="login-input" type="password" id="login-pass" placeholder="Senha" autocomplete="off">
+    <button class="login-btn" onclick="doLogin()">Entrar</button>
+    <div class="login-error" id="login-error">Usuário ou senha incorretos</div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app">
+  <div class="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-label">// ADM</div>
+      <div class="logo-name">ObraFácil</div>
+      <div class="logo-sub">painel interno · v1.0</div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section">Principal</div>
+      <div class="nav-item active" onclick="showPage('dashboard',this)">
+        <span class="nav-icon">◈</span> Dashboard
+      </div>
+      <div class="nav-item" onclick="showPage('kanban',this)">
+        <span class="nav-icon">⊞</span> Kanban
+      </div>
+      <div class="nav-item" onclick="showPage('todo',this)">
+        <span class="nav-icon">◻</span> To Do
+      </div>
+      <div class="nav-section">Documentos</div>
+      <div class="nav-item" onclick="showPage('docs',this)">
+        <span class="nav-icon">◫</span> Processos & Docs
+      </div>
+    </nav>
+    <div class="sidebar-footer">
+      <button class="logout-btn" onclick="doLogout()">Sair da conta</button>
+    </div>
+  </div>
+
+  <div class="main">
+    <div class="topbar">
+      <div class="topbar-title" id="page-label">Dashboard</div>
+      <div class="topbar-right">
+        <div class="badge-live"><span class="dot-live"></span>ONLINE</div>
+      </div>
+    </div>
+
+    <div class="content">
+
+      <!-- DASHBOARD -->
+      <div class="page active" id="page-dashboard">
+        <div class="page-header">
+          <div class="page-title">Visão Geral</div>
+          <div class="page-sub">Métricas e status da operação — Cartão Digital Pro</div>
+        </div>
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-label">Vendas hoje</div>
+            <div class="stat-value stat-orange" id="stat-vendas">0</div>
+            <div class="stat-sub">meta: 20/dia</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Clientes ativos</div>
+            <div class="stat-value stat-green" id="stat-clientes">2.300</div>
+            <div class="stat-sub">+0 hoje</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Receita hoje</div>
+            <div class="stat-value stat-blue" id="stat-receita">R$0</div>
+            <div class="stat-sub">meta: R$1.000</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Pendentes Build</div>
+            <div class="stat-value stat-purple" id="stat-pendentes">0</div>
+            <div class="stat-sub">meta: zero</div>
+          </div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:4px;">
+          <div style="background:var(--dark3);border:1px solid var(--border);border-radius:10px;padding:20px;">
+            <div style="font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:16px;">Checklist do dia</div>
+            <div id="daily-checklist"></div>
+          </div>
+          <div style="background:var(--dark3);border:1px solid var(--border);border-radius:10px;padding:20px;">
+            <div style="font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:16px;">Metas da semana</div>
+            <div id="weekly-goals"></div>
+          </div>
+        </div>
+
+        <div style="background:var(--dark3);border:1px solid var(--border);border-radius:10px;padding:20px;margin-top:14px;">
+          <div style="font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:16px;">Atualizar métricas do dia</div>
+          <div style="display:flex;gap:10px;flex-wrap:wrap;">
+            <div style="flex:1;min-width:120px;">
+              <div style="font-size:10px;color:var(--muted);margin-bottom:6px;">Vendas hoje</div>
+              <input class="todo-input" type="number" id="input-vendas" placeholder="0" style="margin-bottom:0;">
+            </div>
+            <div style="flex:1;min-width:120px;">
+              <div style="font-size:10px;color:var(--muted);margin-bottom:6px;">Receita hoje (R$)</div>
+              <input class="todo-input" type="number" id="input-receita" placeholder="0" style="margin-bottom:0;">
+            </div>
+            <div style="flex:1;min-width:120px;">
+              <div style="font-size:10px;color:var(--muted);margin-bottom:6px;">Pendentes Build</div>
+              <input class="todo-input" type="number" id="input-pendentes" placeholder="0" style="margin-bottom:0;">
+            </div>
+            <div style="display:flex;align-items:flex-end;">
+              <button class="btn-primary" onclick="updateStats()">Atualizar</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- KANBAN -->
+      <div class="page" id="page-kanban">
+        <div class="kanban-header">
+          <div>
+            <div class="page-title">Kanban</div>
+            <div class="page-sub">Gestão de tarefas e projetos</div>
+          </div>
+          <button class="btn-primary" onclick="openModal()">+ Nova tarefa</button>
+        </div>
+        <div class="kanban-board">
+          <div class="kanban-col" id="col-backlog" ondragover="dragOver(event)" ondrop="drop(event,'backlog')">
+            <div class="col-header">
+              <div class="col-title">Backlog</div>
+              <span class="col-count count-orange" id="count-backlog">0</span>
+            </div>
+            <div id="cards-backlog"></div>
+            <button class="add-card-btn" onclick="openModal('backlog')">+ Adicionar</button>
+          </div>
+          <div class="kanban-col" id="col-doing" ondragover="dragOver(event)" ondrop="drop(event,'doing')">
+            <div class="col-header">
+              <div class="col-title">Em andamento</div>
+              <span class="col-count count-blue" id="count-doing">0</span>
+            </div>
+            <div id="cards-doing"></div>
+            <button class="add-card-btn" onclick="openModal('doing')">+ Adicionar</button>
+          </div>
+          <div class="kanban-col" id="col-review" ondragover="dragOver(event)" ondrop="drop(event,'review')">
+            <div class="col-header">
+              <div class="col-title">Revisão</div>
+              <span class="col-count count-yellow" id="count-review">0</span>
+            </div>
+            <div id="cards-review"></div>
+            <button class="add-card-btn" onclick="openModal('review')">+ Adicionar</button>
+          </div>
+          <div class="kanban-col" id="col-done" ondragover="dragOver(event)" ondrop="drop(event,'done')">
+            <div class="col-header">
+              <div class="col-title">Concluído</div>
+              <span class="col-count count-green" id="count-done">0</span>
+            </div>
+            <div id="cards-done"></div>
+            <button class="add-card-btn" onclick="openModal('done')">+ Adicionar</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- TODO -->
+      <div class="page" id="page-todo">
+        <div class="todo-header">
+          <div>
+            <div class="page-title">To Do</div>
+            <div class="page-sub">Lista de tarefas da equipe</div>
+          </div>
+        </div>
+        <div class="todo-input-row">
+          <input class="todo-input" type="text" id="todo-text" placeholder="Nova tarefa..." onkeydown="if(event.key==='Enter')addTodo()">
+          <select class="todo-select" id="todo-category">
+            <option value="urgente">🔴 Urgente</option>
+            <option value="lovable">🟠 Lovable</option>
+            <option value="vendas">🟢 Vendas</option>
+            <option value="conteudo">🔵 Conteúdo</option>
+            <option value="financeiro">🟣 Financeiro</option>
+            <option value="geral" selected>⚪ Geral</option>
+          </select>
+          <select class="todo-select" id="todo-owner">
+            <option value="veras">Veras</option>
+            <option value="dev">Dev</option>
+            <option value="equipe">Equipe</option>
+          </select>
+          <button class="todo-add-btn" onclick="addTodo()">+ Adicionar</button>
+        </div>
+        <div class="todo-section">
+          <div class="todo-section-title">Pendentes</div>
+          <div id="todos-pending"></div>
+        </div>
+        <div class="todo-section">
+          <div class="todo-section-title">Concluídas</div>
+          <div id="todos-done"></div>
+        </div>
+      </div>
+
+      <!-- DOCS -->
+      <div class="page" id="page-docs">
+        <div class="page-header">
+          <div class="page-title">Processos & Documentos</div>
+          <div class="page-sub">SOPs, roteiros e materiais da operação</div>
+        </div>
+        <div class="docs-grid" id="docs-grid"></div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- MODAL KANBAN -->
+<div class="modal-overlay" id="modal">
+  <div class="modal">
+    <div class="modal-title">Nova tarefa</div>
+    <input class="modal-input" type="text" id="modal-title" placeholder="Título da tarefa">
+    <textarea class="modal-input" id="modal-desc" placeholder="Descrição (opcional)" rows="3" style="resize:vertical;"></textarea>
+    <div class="modal-row">
+      <select class="modal-select" id="modal-col">
+        <option value="backlog">Backlog</option>
+        <option value="doing">Em andamento</option>
+        <option value="review">Revisão</option>
+        <option value="done">Concluído</option>
+      </select>
+      <select class="modal-select" id="modal-tag">
+        <option value="orange">Lovable</option>
+        <option value="blue">Vendas</option>
+        <option value="green">Entregue</option>
+        <option value="red">Urgente</option>
+        <option value="purple">Estratégia</option>
+      </select>
+      <select class="modal-select" id="modal-person">
+        <option value="Veras">Veras</option>
+        <option value="Dev">Dev</option>
+        <option value="Equipe">Equipe</option>
+      </select>
+    </div>
+    <div class="modal-btns">
+      <button class="btn-cancel" onclick="closeModal()">Cancelar</button>
+      <button class="btn-save" onclick="saveCard()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ─── AUTH ───
+const USERS = {
+  'veras': 'obra2026',
+  'dev': 'dev2026'
+};
+
+function doLogin() {
+  const u = document.getElementById('login-user').value.trim().toLowerCase();
+  const p = document.getElementById('login-pass').value;
+  if (USERS[u] && USERS[u] === p) {
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
+    loadAll();
+  } else {
+    document.getElementById('login-error').style.display = 'block';
+  }
+}
+
+document.getElementById('login-pass').addEventListener('keydown', e => {
+  if (e.key === 'Enter') doLogin();
+});
+
+function doLogout() {
+  document.getElementById('login-screen').style.display = 'flex';
+  document.getElementById('app').style.display = 'none';
+}
+
+// ─── NAV ───
+function showPage(id, el) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  if (el) el.classList.add('active');
+  const titles = {dashboard:'Dashboard',kanban:'Kanban',todo:'To Do',docs:'Processos & Docs'};
+  document.getElementById('page-label').textContent = titles[id] || id;
+}
+
+// ─── STORAGE ───
+function save(key, val) { try { localStorage.setItem('of_'+key, JSON.stringify(val)); } catch(e){} }
+function load(key, def) { try { const v = localStorage.getItem('of_'+key); return v ? JSON.parse(v) : def; } catch(e){ return def; } }
+
+// ─── STATS ───
+function updateStats() {
+  const v = document.getElementById('input-vendas').value || 0;
+  const r = document.getElementById('input-receita').value || 0;
+  const p = document.getElementById('input-pendentes').value || 0;
+  document.getElementById('stat-vendas').textContent = v;
+  document.getElementById('stat-receita').textContent = 'R$'+Number(r).toLocaleString('pt-BR');
+  document.getElementById('stat-pendentes').textContent = p;
+  save('stats', {v,r,p});
+}
+
+function loadStats() {
+  const s = load('stats', {v:0,r:0,p:0});
+  document.getElementById('stat-vendas').textContent = s.v;
+  document.getElementById('stat-receita').textContent = 'R$'+Number(s.r).toLocaleString('pt-BR');
+  document.getElementById('stat-pendentes').textContent = s.p;
+  document.getElementById('input-vendas').value = s.v;
+  document.getElementById('input-receita').value = s.r;
+  document.getElementById('input-pendentes').value = s.p;
+}
+
+// ─── DASHBOARD WIDGETS ───
+const dailyChecks = [
+  'Zero pendências no Build',
+  'Demo entregue em menos de 10 min',
+  'Funil pós-demo rodando',
+  'Áudio pós-demo no fluxo',
+  'Follow-up automático ativo'
+];
+const weeklyGoals = [
+  '20 vendas/dia por 3 dias consecutivos',
+  'Gravar áudio pós-demo',
+  'Implementar fluxo pós-demo (Lovable)',
+  'Testar 3 fluxos de entrada (A/B/C)',
+  'Contratar 1 produtor'
+];
+
+function renderChecklist() {
+  const checks = load('daily_checks', {});
+  const el = document.getElementById('daily-checklist');
+  el.innerHTML = dailyChecks.map((t,i) => `
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;cursor:pointer;" onclick="toggleCheck(${i})">
+      <div style="width:16px;height:16px;border-radius:4px;border:1px solid ${checks[i]?'var(--orange)':'var(--border2)'};background:${checks[i]?'var(--orange)':'transparent'};flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:10px;color:#fff;">
+        ${checks[i]?'✓':''}
+      </div>
+      <span style="font-size:12px;color:${checks[i]?'var(--muted)':'var(--white)'};${checks[i]?'text-decoration:line-through':''}">${t}</span>
+    </div>`).join('');
+}
+
+function toggleCheck(i) {
+  const checks = load('daily_checks', {});
+  checks[i] = !checks[i];
+  save('daily_checks', checks);
+  renderChecklist();
+}
+
+function renderGoals() {
+  const el = document.getElementById('weekly-goals');
+  el.innerHTML = weeklyGoals.map((t,i) => `
+    <div style="display:flex;align-items:flex-start;gap:8px;margin-bottom:8px;">
+      <div style="width:6px;height:6px;border-radius:50%;background:var(--orange);flex-shrink:0;margin-top:6px;"></div>
+      <span style="font-size:12px;color:var(--off);">${t}</span>
+    </div>`).join('');
+}
+
+// ─── KANBAN ───
+let cards = [];
+let dragId = null;
+let defaultCol = 'backlog';
+
+function openModal(col) {
+  defaultCol = col || 'backlog';
+  document.getElementById('modal-col').value = defaultCol;
+  document.getElementById('modal-title').value = '';
+  document.getElementById('modal-desc').value = '';
+  document.getElementById('modal').classList.add('open');
+  setTimeout(() => document.getElementById('modal-title').focus(), 100);
+}
+
+function closeModal() {
+  document.getElementById('modal').classList.remove('open');
+}
+
+function saveCard() {
+  const t = document.getElementById('modal-title').value.trim();
+  if (!t) return;
+  const card = {
+    id: Date.now(),
+    title: t,
+    desc: document.getElementById('modal-desc').value.trim(),
+    col: document.getElementById('modal-col').value,
+    tag: document.getElementById('modal-tag').value,
+    tagLabel: document.getElementById('modal-tag').options[document.getElementById('modal-tag').selectedIndex].text,
+    person: document.getElementById('modal-person').value,
+    date: new Date().toLocaleDateString('pt-BR')
+  };
+  cards.push(card);
+  save('kanban_cards', cards);
+  renderKanban();
+  closeModal();
+}
+
+function deleteCard(id) {
+  cards = cards.filter(c => c.id !== id);
+  save('kanban_cards', cards);
+  renderKanban();
+}
+
+function renderKanban() {
+  const cols = ['backlog','doing','review','done'];
+  cols.forEach(col => {
+    const el = document.getElementById('cards-'+col);
+    const colCards = cards.filter(c => c.col === col);
+    document.getElementById('count-'+col).textContent = colCards.length;
+    el.innerHTML = colCards.map(c => `
+      <div class="kanban-card" draggable="true"
+        ondragstart="dragStart(event,${c.id})"
+        ondragend="dragEnd(event)">
+        <div class="card-title">${c.title}</div>
+        ${c.desc ? `<div class="card-meta" style="margin-bottom:4px;color:var(--off);font-size:11px;">${c.desc}</div>` : ''}
+        <div class="card-meta">${c.date} · ${c.person}</div>
+        <div class="card-tags">
+          <span class="tag tag-${c.tag}">${c.tagLabel}</span>
+          <span class="tag" style="background:var(--border);color:var(--muted);cursor:pointer;" onclick="deleteCard(${c.id})">✕</span>
+        </div>
+      </div>`).join('');
+  });
+}
+
+function dragStart(e, id) {
+  dragId = id;
+  e.target.classList.add('dragging');
+}
+function dragEnd(e) { e.target.classList.remove('dragging'); }
+function dragOver(e) { e.preventDefault(); e.currentTarget.classList.add('drag-over'); }
+function drop(e, col) {
+  e.preventDefault();
+  e.currentTarget.classList.remove('drag-over');
+  document.querySelectorAll('.kanban-col').forEach(c => c.classList.remove('drag-over'));
+  const card = cards.find(c => c.id === dragId);
+  if (card) { card.col = col; save('kanban_cards', cards); renderKanban(); }
+}
+document.addEventListener('dragover', () => {
+  document.querySelectorAll('.kanban-col').forEach(c => c.classList.remove('drag-over'));
+});
+
+function loadKanban() {
+  cards = load('kanban_cards', [
+    {id:1,title:'Gravar áudio pós-demo',desc:'Roteiro já pronto',col:'backlog',tag:'orange',tagLabel:'Lovable',person:'Veras',date:new Date().toLocaleDateString('pt-BR')},
+    {id:2,title:'Implementar fluxo pós-demo no Lovable',desc:'Prompt no MD pronto',col:'backlog',tag:'orange',tagLabel:'Lovable',person:'Dev',date:new Date().toLocaleDateString('pt-BR')},
+    {id:3,title:'Testar Fluxo A/B/C de entrada',desc:'3 variações de coleta de dados',col:'doing',tag:'blue',tagLabel:'Vendas',person:'Veras',date:new Date().toLocaleDateString('pt-BR')},
+    {id:4,title:'Contratar produtor Build',desc:'Perfil: 18-25 anos, organizado',col:'backlog',tag:'purple',tagLabel:'Estratégia',person:'Veras',date:new Date().toLocaleDateString('pt-BR')},
+    {id:5,title:'Agente importação inteligente',desc:'Medir tempo por cartão',col:'doing',tag:'orange',tagLabel:'Lovable',person:'Dev',date:new Date().toLocaleDateString('pt-BR')}
+  ]);
+  renderKanban();
+}
+
+// ─── TODO ───
+let todos = [];
+
+const catColors = {
+  urgente:'red',lovable:'orange',vendas:'green',
+  conteudo:'blue',financeiro:'purple',geral:'muted'
+};
+const catLabels = {
+  urgente:'🔴 Urgente',lovable:'🟠 Lovable',vendas:'🟢 Vendas',
+  conteudo:'🔵 Conteúdo',financeiro:'🟣 Financeiro',geral:'⚪ Geral'
+};
+
+function addTodo() {
+  const t = document.getElementById('todo-text').value.trim();
+  if (!t) return;
+  todos.push({
+    id: Date.now(),
+    text: t,
+    category: document.getElementById('todo-category').value,
+    owner: document.getElementById('todo-owner').value,
+    done: false,
+    date: new Date().toLocaleDateString('pt-BR')
+  });
+  document.getElementById('todo-text').value = '';
+  save('todos', todos);
+  renderTodos();
+}
+
+function toggleTodo(id) {
+  const t = todos.find(t => t.id === id);
+  if (t) { t.done = !t.done; save('todos', todos); renderTodos(); }
+}
+
+function deleteTodo(id) {
+  todos = todos.filter(t => t.id !== id);
+  save('todos', todos);
+  renderTodos();
+}
+
+function renderTodoItem(t) {
+  const col = catColors[t.category] || 'muted';
+  return `
+    <div class="todo-item ${t.done?'done':''}">
+      <div class="todo-check ${t.done?'checked':''}" onclick="toggleTodo(${t.id})"></div>
+      <div style="flex:1;">
+        <div class="todo-text">${t.text}</div>
+        <div style="font-size:10px;color:var(--muted);font-family:'IBM Plex Mono',monospace;margin-top:3px;">${t.date} · ${t.owner}</div>
+      </div>
+      <span class="todo-badge tag-${col}" style="background:var(--${col}dim,var(--border));color:var(--${col},var(--muted));">${catLabels[t.category]}</span>
+      <button class="todo-del" onclick="deleteTodo(${t.id})">✕</button>
+    </div>`;
+}
+
+function renderTodos() {
+  const pending = todos.filter(t => !t.done);
+  const done = todos.filter(t => t.done);
+  document.getElementById('todos-pending').innerHTML = pending.length
+    ? pending.map(renderTodoItem).join('')
+    : '<div style="font-size:12px;color:var(--muted);padding:12px 0;">Nenhuma tarefa pendente ✓</div>';
+  document.getElementById('todos-done').innerHTML = done.length
+    ? done.map(renderTodoItem).join('')
+    : '<div style="font-size:12px;color:var(--muted);padding:12px 0;">Nenhuma tarefa concluída ainda</div>';
+}
+
+function loadTodos() {
+  todos = load('todos', [
+    {id:1,text:'Validar 20 vendas/dia por 3 dias consecutivos',category:'vendas',owner:'Veras',done:false,date:new Date().toLocaleDateString('pt-BR')},
+    {id:2,text:'Gravar áudio pós-demo (roteiro pronto)',category:'lovable',owner:'Veras',done:false,date:new Date().toLocaleDateString('pt-BR')},
+    {id:3,text:'Zerar fila de demos pendentes',category:'urgente',owner:'Equipe',done:false,date:new Date().toLocaleDateString('pt-BR')},
+    {id:4,text:'Testar fluxo de entrada A/B/C',category:'vendas',owner:'Veras',done:false,date:new Date().toLocaleDateString('pt-BR')}
+  ]);
+  renderTodos();
+}
+
+// ─── DOCS ───
+const docs = [
+  {icon:'🤖',title:'Prompt — Beto IA',desc:'System prompt completo do agente de coleta de dados',tag:'Agente',color:'orange'},
+  {icon:'🏗️',title:'Prompt — Agente Build',desc:'Importação inteligente com multimodal + transcrição de áudio',tag:'Produção',color:'blue'},
+  {icon:'📱',title:'Fluxo pós-demo',desc:'Sequência completa de mensagens após criação do demonstrativo',tag:'Automação',color:'green'},
+  {icon:'📸',title:'Prompt — Curadoria de Fotos',desc:'Ranking e eliminação de fotos com Gemini 2.5 Flash',tag:'IA',color:'purple'},
+  {icon:'☁️',title:'Cloudflare Worker',desc:'Código para rich preview no WhatsApp — diagnóstico e fix',tag:'Técnico',color:'blue'},
+  {icon:'🎨',title:'Extração de Tema Visual',desc:'Auto-extração de cores da logo para templates de artes',tag:'Design',color:'orange'},
+  {icon:'📊',title:'Plano 10k/dia',desc:'Roadmap completo para escalar de 20 para 200 vendas/dia',tag:'Estratégia',color:'green'},
+  {icon:'🌎',title:'Expansão LATAM',desc:'Análise de mercado — México, Colômbia, Argentina',tag:'Expansão',color:'purple'},
+  {icon:'📄',title:'Papel Timbrado',desc:'Prompt Lovable para geração de papel timbrado PDF + DOCX',tag:'Estúdio',color:'orange'},
+  {icon:'💳',title:'Cartão Físico',desc:'Prompt Lovable para arte do cartão de visita físico com QR Code',tag:'Estúdio',color:'blue'},
+  {icon:'🎬',title:'Roteiro Eleven Labs',desc:'Texto final do áudio pós-demo para upload no sistema',tag:'Conteúdo',color:'green'},
+  {icon:'🧪',title:'Criativos para teste',desc:'5 ângulos por pacote para A/B no Meta Ads',tag:'Anúncios',color:'purple'}
+];
+
+function renderDocs() {
+  document.getElementById('docs-grid').innerHTML = docs.map(d => `
+    <div class="doc-card">
+      <div class="doc-icon">${d.icon}</div>
+      <div class="doc-title">${d.title}</div>
+      <div class="doc-desc">${d.desc}</div>
+      <span class="doc-tag tag-${d.color}">${d.tag}</span>
+    </div>`).join('');
+}
+
+// ─── INIT ───
+function loadAll() {
+  loadStats();
+  renderChecklist();
+  renderGoals();
+  loadKanban();
+  loadTodos();
+  renderDocs();
+}
+
+document.getElementById('modal').addEventListener('click', e => {
+  if (e.target === document.getElementById('modal')) closeModal();
+});
+</script>
+</body>
+</html>
